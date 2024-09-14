@@ -1,8 +1,7 @@
 import socket
 import struct
-import time
 import network
-
+import time
 
 
 class Communication:
@@ -72,62 +71,37 @@ class Communication:
         # Send the heartbeat message via UDP
         self.sock.sendto(heartbeat_message, (udp_ip, udp_port))
         print("Heartbeat message sent:", heartbeat_message)
-
-    def send_command_ack(self, command, result, udp_ip="192.168.4.255", udp_port=14550):
-        system_id = 1
-        component_id = 1
-        payload = struct.pack('<HHBB',
-            command,
-            result,
-            system_id,
-            component_id
-        )
-        header = struct.pack('<BBBBBB',
-            0xFE,
-            len(payload),
-            0,
-            system_id,
-            component_id,
-            77  # COMMAND_ACK message ID
-        )
-        message = header + payload
-        crc = self.crc_calculate(message[1:])
-        crc = self.crc_accumulate(self.CRC_EXTRA_COMMAND_ACK, crc)
-        full_message = message + struct.pack('<H', crc)
-        self.sock.sendto(full_message, (udp_ip, udp_port))
+        
+    def receive_message(self):
+        data, addr = self.sock.recvfrom(1024)  # Получение данных из сокета
+        print(f"Received message from {addr}: {data}")
 
 
-    def send_command(self, command, param1, param2, param3, param4, param5, param6, param7, udp_ip="192.168.4.255", udp_port=14550):
-        system_id = 1
-        component_id = 1
-        payload = struct.pack('<HHfffffff',
-            command,
-            0,  # Command result (status) - 0 means no result
-            param1,
-            param2,
-            param3,
-            param4,
-            param5,
-            param6,
-            param7
-        )
-        header = struct.pack('<BBBBBB',
-            0xFE,      # Start byte
-            len(payload),  # Payload length
-            0,           # Sequence number
-            system_id,   # System ID
-            component_id, # Component ID
-            76            # COMMAND_LONG message ID
-        )
-        message = header + payload
-        crc = self.crc_calculate(message[1:])
-        crc = self.crc_accumulate(self.CRC_EXTRA_COMMAND_LONG, crc)
-        full_message = message + struct.pack('<H', crc)
-        self.sock.sendto(full_message, (udp_ip, udp_port))
-        print("Command sent:", full_message)
+def main():
+    # Настраиваем параметры для создания точки доступа и отправки heartbeat сообщений
+    essid = "eps32"  # Имя точки доступа
+    password = "7779777119"  # Пароль для подключения к точке доступа
+    mav_type = 2  # Тип MAV (2 - квадрокоптер)
+    mav_autopilot = 1  # Автопилот (1 - generic)
+    mav_mode = 0  # Режим MAV (0 - preflight)
+    mav_state = 0  # Состояние MAV (0 - standby)
+    mavlink_version = 1  # Версия MAVLink
 
+    # Создаем экземпляр класса Communication
+    comm = Communication(essid, password, mav_type, mav_autopilot, mav_mode, mav_state, mavlink_version)
 
+    # Периодически отправляем heartbeat-сообщения
+    while True:
+        comm.send_heartbeat()
+        time.sleep(1)  # Отправляем heartbeat каждые 1 секунду
 
+        # При необходимости можно получать сообщения от QGroundControl
+        try:
+            comm.receive_message()  # Получаем и обрабатываем ответные сообщения
+        except OSError:
+            pass  # Если сообщений нет, продолжаем цикл
+
+# Запуск main функции
 if __name__ == "__main__":
-    com = Communication('eps32', '7779777119', 2, 0, 0, 3, 3)
-    com.send_heartbeat()
+    main()
+
