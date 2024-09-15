@@ -70,7 +70,7 @@ class decoder:
             magic, mlen, seq, srcSystem, srcComponent, msgId = self.unpacker.unpack("<cBBBBB", msgbuf[:headerlen])
             incompat_flags = 0
             compat_flags = 0
-        except struct.error as emsg:
+        except (ValueError, OSError) as emsg:
             raise ValueError("Unable to unpack MAVLink header: %s" % emsg)
         mapkey = msgId
         signature_len = 0
@@ -90,7 +90,7 @@ class decoder:
         # decode the checksum
         try:
             (crc,) = self.unpacker.unpack("<H", msgbuf[-(2 + signature_len) :][:2])
-        except struct.error as emsg:
+        except (ValueError, OSError) as emsg:
             raise ValueError("Unable to unpack MAVLink CRC: %s" % emsg)
         crcbuf = msgbuf[1 : -(2 + signature_len)]
         if True:
@@ -112,7 +112,7 @@ class decoder:
         mbuf = mbuf[:csize]
         try:
             t = msgtype.unpacker.unpack(msgtype.native_format.decode('utf-8'),mbuf)
-        except struct.error as emsg:
+        except (ValueError, OSError) as emsg:
             raise ValueError("Unable to unpack MAVLink payload type=%s payloadLength=%u: %s" % (msgtype, len(mbuf), emsg))
 
         tlist = list(t)
