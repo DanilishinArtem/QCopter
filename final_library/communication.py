@@ -14,8 +14,8 @@ class Communication:
         self.CRC_EXTRA_HEARTBEAT = 50  # CRC_EXTRA for heartbeat message
         self.CRC_EXTRA_COMMAND_LONG = 20  # CRC_EXTRA for COMMAND_LONG message
         self.CRC_EXTRA_COMMAND_ACK = 143
-        # self.create_AP(essid=essid, password=password)
-        # self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.create_AP(essid=essid, password=password)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     def create_AP(self, essid: str, password: str):
         ap = network.WLAN(network.AP_IF)
@@ -69,7 +69,6 @@ class Communication:
         # Create and serialize the heartbeat message
         heartbeat_message = self.create_heartbeat(system_id, component_id)
         # Send the heartbeat message via UDP
-        print('heartbeat message: {}'.format(heartbeat_message))
         self.sock.sendto(heartbeat_message, (udp_ip, udp_port))
         print("Heartbeat message sent:", heartbeat_message)
         
