@@ -38,7 +38,7 @@ class Communication:
     def send_heartbeat(self, udp_ip="192.168.4.255", udp_port=14550):
         heartbeat_message = self.msg.get_message()
         self.sock.sendto(heartbeat_message, (udp_ip, udp_port))
-        print("Heartbeat message sent:", heartbeat_message)
+        # print("Heartbeat message sent:", heartbeat_message)
         
     def receive_message(self):
         data, addr = self.sock.recvfrom(1024)
@@ -47,4 +47,4 @@ class Communication:
             msg = self.dec.parse_char(bytes([byte]))
             if msg:
                 if msg.get_type() == "MANUAL_CONTROL":
-                    print(f"x: {msg.x}, y: {msg.y}, z: {msg.z}")
+                    print(f"x: {msg.x}, y: {msg.y}, z: {msg.z}, r: {msg.r}")
