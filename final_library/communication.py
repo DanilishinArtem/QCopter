@@ -42,10 +42,9 @@ class Communication:
         
     def receive_message(self):
         data, addr = self.sock.recvfrom(1024)  # Получение данных из сокета
-        # msg_ = ''
-        # for byte in data:
-        #     msg = self.dec.parse_char(bytes([byte]))  # Преобразуем каждый элемент в байт
-        #     if msg:
-        #         msg_ += msg
-        print(f"Received message from {addr}: {data}")
-
+        msg_ = ''
+        for byte in data:
+            msg = self.dec.parse_char(bytes([byte]))  # Преобразуем каждый элемент в байт
+            if msg:
+                print("Received message from {}: {}".format(addr, msg))
+        # print(f"Received message from {addr}: {msg_}")

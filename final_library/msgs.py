@@ -1,6 +1,7 @@
 import struct
 
 MAVLINK_MSG_ID_HEARTBEAT = 0
+MAVLINK_MSG_ID_MANUAL_CONTROL = 69
 MAVLINK_MSG_ID_COMMAND_ACK = 77
 MAVLINK_MSG_ID_COMMAND_LONG = 76
 PROTOCOL_MARKER_V1 = 0xFE
@@ -250,7 +251,6 @@ class MAVLink_command_ack_message(MAVLink_message):
     lengths = [1, 1]
     array_lengths = [0, 0]
     crc_extra = 143
-    unpacker = struct
     instance_field = None
     instance_offset = -1
 
@@ -263,7 +263,7 @@ class MAVLink_command_ack_message(MAVLink_message):
         self.result = result
 
     def pack(self, force_mavlink1: bool = False) -> bytes:
-        return self._pack(self.crc_extra, self.unpacker.pack("<HB", self.command, self.result), force_mavlink1=force_mavlink1)
+        return self._pack(self.crc_extra, struct.pack("<HB", self.command, self.result), force_mavlink1=force_mavlink1)
 
 
 class MAVLink_command_long_message(MAVLink_message):
@@ -280,7 +280,6 @@ class MAVLink_command_long_message(MAVLink_message):
     lengths = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     array_lengths = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     crc_extra = 152
-    unpacker = struct
     instance_field = None
     instance_offset = -1
 
@@ -302,4 +301,45 @@ class MAVLink_command_long_message(MAVLink_message):
         self.param7 = param7
 
     def pack(self, force_mavlink1: bool = False) -> bytes:
-        return self._pack(self.crc_extra, self.unpacker.pack("<fffffffHBBB", self.param1, self.param2, self.param3, self.param4, self.param5, self.param6, self.param7, self.command, self.target_system, self.target_component, self.confirmation), force_mavlink1=force_mavlink1)
+        return self._pack(self.crc_extra, struct.pack("<fffffffHBBB", self.param1, self.param2, self.param3, self.param4, self.param5, self.param6, self.param7, self.command, self.target_system, self.target_component, self.confirmation), force_mavlink1=force_mavlink1)
+
+
+class MAVLink_manual_control_message(MAVLink_message):
+    """
+    This message provides an API for manually controlling the vehicle
+    using standard joystick axes nomenclature, along with a joystick-
+    like input device. Unused axes can be disabled an buttons are also
+    transmit as boolean values of their
+    """
+
+    id = MAVLINK_MSG_ID_MANUAL_CONTROL
+    msgname = "MANUAL_CONTROL"
+    fieldnames = ["target", "x", "y", "z", "r", "buttons"]
+    ordered_fieldnames = ["x", "y", "z", "r", "buttons", "target"]
+    fieldtypes = ["uint8_t", "int16_t", "int16_t", "int16_t", "int16_t", "uint16_t"]
+    fielddisplays_by_name = {}
+    fieldenums_by_name = {}
+    fieldunits_by_name = {}
+    native_format = bytearray(b"<hhhhHB")
+    orders = [5, 0, 1, 2, 3, 4]
+    lengths = [1, 1, 1, 1, 1, 1]
+    array_lengths = [0, 0, 0, 0, 0, 0]
+    crc_extra = 243
+    instance_field = None
+    instance_offset = -1
+
+    def __init__(self, target: int, x: int, y: int, z: int, r: int, buttons: int):
+        MAVLink_message.__init__(self, MAVLink_manual_control_message.id, MAVLink_manual_control_message.msgname)
+        self._fieldnames = MAVLink_manual_control_message.fieldnames
+        self._instance_field = MAVLink_manual_control_message.instance_field
+        self._instance_offset = MAVLink_manual_control_message.instance_offset
+        self.target = target
+        self.x = x
+        self.y = y
+        self.z = z
+        self.r = r
+        self.buttons = buttons
+
+    def pack(self, force_mavlink1: bool = False) -> bytes:
+        return self._pack(self.crc_extra, struct.pack("<hhhhHB", self.x, self.y, self.z, self.r, self.buttons, self.target), force_mavlink1=force_mavlink1)
+

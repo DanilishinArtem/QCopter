@@ -1,4 +1,11 @@
-from msgs import MAVLink_heartbeat_message, MAVLink_command_ack_message, MAVLink_command_long_message, x25crc, MAVLink_header
+from msgs import (
+    x25crc, 
+    MAVLink_header, 
+    MAVLink_heartbeat_message, 
+    MAVLink_command_ack_message, 
+    MAVLink_command_long_message, 
+    MAVLink_manual_control_message,
+)
 import struct
 
 # mavlink message ids --------------------->
@@ -7,6 +14,8 @@ MAVLINK_MSG_ID_UNKNOWN = -2
 MAVLINK_MSG_ID_SYS_STATUS = 1
 MAVLINK_MSG_ID_SYSTEM_TIME = 2
 MAVLINK_MSG_ID_PING = 4
+
+MAVLINK_MSG_ID_MANUAL_CONTROL = 69
 MAVLINK_MSG_ID_COMMAND_LONG = 76
 MAVLINK_MSG_ID_COMMAND_ACK = 77
 MAVLINK_MSG_ID_HEARTBEAT = 0
@@ -15,6 +24,7 @@ MAVLINK_MSG_ID_HEARTBEAT = 0
 mavlink_map = {
    MAVLINK_MSG_ID_COMMAND_LONG: MAVLink_command_long_message,
     MAVLINK_MSG_ID_COMMAND_ACK: MAVLink_command_ack_message,
+    MAVLINK_MSG_ID_MANUAL_CONTROL: MAVLink_manual_control_message,
    MAVLINK_MSG_ID_HEARTBEAT: MAVLink_heartbeat_message,
 }
 
@@ -67,7 +77,7 @@ class decoder:
     def decode(self, msgbuf):
         headerlen = 6
         try:
-            magic, mlen, seq, srcSystem, srcComponent, msgId = self.unpacker.unpack("<cBBBBB", msgbuf[:headerlen])
+            magic, mlen, seq, srcSystem, srcComponent, msgId = self.unpacker.unpack("<BBBBBB", msgbuf[:headerlen])
             incompat_flags = 0
             compat_flags = 0
         except (ValueError, OSError) as emsg:
@@ -111,7 +121,7 @@ class decoder:
             raise ValueError("Bad message of type %s length %u needs %s" % (msgtype, len(mbuf), csize))
         mbuf = mbuf[:csize]
         try:
-            t = msgtype.unpacker.unpack(msgtype.native_format.decode('utf-8'),mbuf)
+            t = struct.unpack(msgtype.native_format.decode('utf-8'),mbuf)
         except (ValueError, OSError) as emsg:
             raise ValueError("Unable to unpack MAVLink payload type=%s payloadLength=%u: %s" % (msgtype, len(mbuf), emsg))
 
