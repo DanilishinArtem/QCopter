@@ -41,10 +41,10 @@ class Communication:
         print("Heartbeat message sent:", heartbeat_message)
         
     def receive_message(self):
-        data, addr = self.sock.recvfrom(1024)  # Получение данных из сокета
+        data, addr = self.sock.recvfrom(1024)
         msg_ = ''
         for byte in data:
-            msg = self.dec.parse_char(bytes([byte]))  # Преобразуем каждый элемент в байт
+            msg = self.dec.parse_char(bytes([byte]))
             if msg:
-                print("Received message from {}: {}".format(addr, msg))
-        # print(f"Received message from {addr}: {msg_}")
+                if msg.get_type() == "MANUAL_CONTROL":
+                    print(f"x: {msg.x}, y: {msg.y}, z: {msg.z}")
