@@ -1,3 +1,4 @@
+# https://github.com/micropython-IMU/micropython-mpu9x50
 from machine import Pin, I2C
 from mpu9250 import MPU9250
 import time
