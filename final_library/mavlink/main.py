@@ -12,17 +12,13 @@ def main():
     comm = Communication(essid, password)
     comm.create_heartbeat(1,1)
     while True:
-        # size = gc.mem_free()
         gc.collect()
-        # print('mem free = {}'.format(gc.mem_free() - size))
-        # print('free mem = {}'.format(gc.mem_free()))
         comm.send_heartbeat()
         # time.sleep(0.1)
-        # При необходимости можно получать сообщения от QGroundControl
         try:
-            comm.receive_message()  # Получаем и обрабатываем ответные сообщения
+            comm.receive_message()
         except OSError:
-            pass  # Если сообщений нет, продолжаем цикл
+            pass
         comm.sendAccelGyroMag()
         # time.sleep(0.1)
         
