@@ -1,9 +1,11 @@
 import struct
 
 MAVLINK_MSG_ID_HEARTBEAT = 0
+MAVLINK_MSG_ID_SCALED_IMU = 26
+MAVLINK_MSG_ID_ATTITUDE = 30
 MAVLINK_MSG_ID_MANUAL_CONTROL = 69
-MAVLINK_MSG_ID_COMMAND_ACK = 77
 MAVLINK_MSG_ID_COMMAND_LONG = 76
+MAVLINK_MSG_ID_COMMAND_ACK = 77
 PROTOCOL_MARKER_V1 = 0xFE
 
 
@@ -233,7 +235,7 @@ class MAVLink_heartbeat_message(MAVLink_message):
         self.system_status = system_status
         self.mavlink_version = mavlink_version
 
-    def get_message(self):
+    def pack(self):
         return self._pack(self.crc_extra, struct.pack("<IBBBBB", self.custom_mode, self.type, self.autopilot, self.base_mode, self.system_status, self.mavlink_version), force_mavlink1=False)
 
 
@@ -305,13 +307,6 @@ class MAVLink_command_long_message(MAVLink_message):
 
 
 class MAVLink_manual_control_message(MAVLink_message):
-    """
-    This message provides an API for manually controlling the vehicle
-    using standard joystick axes nomenclature, along with a joystick-
-    like input device. Unused axes can be disabled an buttons are also
-    transmit as boolean values of their
-    """
-
     id = MAVLINK_MSG_ID_MANUAL_CONTROL
     msgname = "MANUAL_CONTROL"
     fieldnames = ["target", "x", "y", "z", "r", "buttons"]
@@ -343,3 +338,73 @@ class MAVLink_manual_control_message(MAVLink_message):
     def pack(self, force_mavlink1: bool = False) -> bytes:
         return self._pack(self.crc_extra, struct.pack("<hhhhHB", self.x, self.y, self.z, self.r, self.buttons, self.target), force_mavlink1=force_mavlink1)
 
+
+class MAVLink_scaled_imu_message(MAVLink_message):
+    id = MAVLINK_MSG_ID_SCALED_IMU
+    msgname = "SCALED_IMU"
+    fieldnames = ["time_boot_ms", "xacc", "yacc", "zacc", "xgyro", "ygyro", "zgyro", "xmag", "ymag", "zmag"]
+    ordered_fieldnames = ["time_boot_ms", "xacc", "yacc", "zacc", "xgyro", "ygyro", "zgyro", "xmag", "ymag", "zmag"]
+    fieldtypes = ["uint32_t", "int16_t", "int16_t", "int16_t", "int16_t", "int16_t", "int16_t", "int16_t", "int16_t", "int16_t"]
+    fielddisplays_by_name = {}
+    fieldenums_by_name = {}
+    fieldunits_by_name = {"time_boot_ms": "ms", "xacc": "mG", "yacc": "mG", "zacc": "mG", "xgyro": "mrad/s", "ygyro": "mrad/s", "zgyro": "mrad/s", "xmag": "mgauss", "ymag": "mgauss", "zmag": "mgauss"}
+    native_format = bytearray(b"<Ihhhhhhhhh")
+    orders = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    lengths = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    array_lengths = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    crc_extra = 170
+    instance_field = None
+    instance_offset = -1
+
+    def __init__(self, time_boot_ms: int, xacc: int, yacc: int, zacc: int, xgyro: int, ygyro: int, zgyro: int, xmag: int, ymag: int, zmag: int):
+        MAVLink_message.__init__(self, MAVLink_scaled_imu_message.id, MAVLink_scaled_imu_message.msgname)
+        self._fieldnames = MAVLink_scaled_imu_message.fieldnames
+        self._instance_field = MAVLink_scaled_imu_message.instance_field
+        self._instance_offset = MAVLink_scaled_imu_message.instance_offset
+        self.time_boot_ms = time_boot_ms
+        self.xacc = xacc
+        self.yacc = yacc
+        self.zacc = zacc
+        self.xgyro = xgyro
+        self.ygyro = ygyro
+        self.zgyro = zgyro
+        self.xmag = xmag
+        self.ymag = ymag
+        self.zmag = zmag
+
+    def pack(self, force_mavlink1: bool = False) -> bytes:
+        return self._pack(self.crc_extra, struct.pack("<Ihhhhhhhhh", self.time_boot_ms, self.xacc, self.yacc, self.zacc, self.xgyro, self.ygyro, self.zgyro, self.xmag, self.ymag, self.zmag), force_mavlink1=force_mavlink1)
+
+
+class MAVLink_attitude_message(MAVLink_message):
+    id = MAVLINK_MSG_ID_ATTITUDE
+    msgname = "ATTITUDE"
+    fieldnames = ["time_boot_ms", "roll", "pitch", "yaw", "rollspeed", "pitchspeed", "yawspeed"]
+    ordered_fieldnames = ["time_boot_ms", "roll", "pitch", "yaw", "rollspeed", "pitchspeed", "yawspeed"]
+    fieldtypes = ["uint32_t", "float", "float", "float", "float", "float", "float"]
+    fielddisplays_by_name = {}
+    fieldenums_by_name = {}
+    fieldunits_by_name = {"time_boot_ms": "ms", "roll": "rad", "pitch": "rad", "yaw": "rad", "rollspeed": "rad/s", "pitchspeed": "rad/s", "yawspeed": "rad/s"}
+    native_format = bytearray(b"<Iffffff")
+    orders = [0, 1, 2, 3, 4, 5, 6]
+    lengths = [1, 1, 1, 1, 1, 1, 1]
+    array_lengths = [0, 0, 0, 0, 0, 0, 0]
+    crc_extra = 39
+    instance_field = None
+    instance_offset = -1
+
+    def __init__(self, time_boot_ms: int, roll: float, pitch: float, yaw: float, rollspeed: float, pitchspeed: float, yawspeed: float):
+        MAVLink_message.__init__(self, MAVLink_attitude_message.id, MAVLink_attitude_message.msgname)
+        self._fieldnames = MAVLink_attitude_message.fieldnames
+        self._instance_field = MAVLink_attitude_message.instance_field
+        self._instance_offset = MAVLink_attitude_message.instance_offset
+        self.time_boot_ms = time_boot_ms
+        self.roll = roll
+        self.pitch = pitch
+        self.yaw = yaw
+        self.rollspeed = rollspeed
+        self.pitchspeed = pitchspeed
+        self.yawspeed = yawspeed
+
+    def pack(self, force_mavlink1: bool = False) -> bytes:
+        return self._pack(self.crc_extra, self.unpacker.pack("<Iffffff", self.time_boot_ms, self.roll, self.pitch, self.yaw, self.rollspeed, self.pitchspeed, self.yawspeed), force_mavlink1=force_mavlink1)

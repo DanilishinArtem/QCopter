@@ -5,6 +5,7 @@ from msgs import (
     MAVLink_command_ack_message, 
     MAVLink_command_long_message, 
     MAVLink_manual_control_message,
+    MAVLink_scaled_imu_message,
 )
 import struct
 
@@ -15,6 +16,7 @@ MAVLINK_MSG_ID_SYS_STATUS = 1
 MAVLINK_MSG_ID_SYSTEM_TIME = 2
 MAVLINK_MSG_ID_PING = 4
 
+MAVLINK_MSG_ID_SCALED_IMU = 26
 MAVLINK_MSG_ID_MANUAL_CONTROL = 69
 MAVLINK_MSG_ID_COMMAND_LONG = 76
 MAVLINK_MSG_ID_COMMAND_ACK = 77
@@ -25,6 +27,7 @@ mavlink_map = {
    MAVLINK_MSG_ID_COMMAND_LONG: MAVLink_command_long_message,
     MAVLINK_MSG_ID_COMMAND_ACK: MAVLink_command_ack_message,
     MAVLINK_MSG_ID_MANUAL_CONTROL: MAVLink_manual_control_message,
+    MAVLINK_MSG_ID_SCALED_IMU: MAVLink_scaled_imu_message,
    MAVLINK_MSG_ID_HEARTBEAT: MAVLink_heartbeat_message,
 }
 
