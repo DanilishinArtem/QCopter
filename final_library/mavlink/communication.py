@@ -7,11 +7,11 @@ from msgs import (
     MAVLink_attitude_message,
 )
 from decoder import decoder
-from filter import ComplementaryFilter
-import time
 
 
-i2c = I2C(0, scl=Pin(9), sda=Pin(8))
+
+i2c = I2C(0, scl=Pin(8), sda=Pin(7))
+from filter import Fusion
 
 class Communication:
     def __init__(self, essid: str, password: str):
@@ -30,7 +30,7 @@ class Communication:
         self.msg = None
         self.dec = decoder()
         self.imu = MPU9250(i2c)
-        self.filter = ComplementaryFilter()
+        self.filter = Fusion()
 
     def create_AP(self):
         ap = network.WLAN(network.AP_IF)
@@ -46,7 +46,10 @@ class Communication:
 
     def send_heartbeat(self, udp_ip="192.168.4.255", udp_port=14550):
         heartbeat_message = self.msg.pack()
-        self.sock.sendto(heartbeat_message, (udp_ip, udp_port))
+        try:
+            self.sock.sendto(heartbeat_message, (udp_ip, udp_port))
+        except:
+            pass
         # print("Heartbeat message sent:", heartbeat_message)
         
     def receive_message(self):
@@ -60,12 +63,12 @@ class Communication:
                     pass
 
     def sendAccelGyroMag(self, udp_ip="192.168.4.255", udp_port=14550):
-        roll, pitch, yaw, rollspeed, pitchspeed, yawspeed, t_stamp = self.filter.update(self.imu.accel, self.imu.gyro, self.imu.mag)
-        # print('roll: {}, pitch: {}, yaw: {}'.format(roll, pitch, yaw))
-        # print('rollS: {}, pitchS: {}, yawS: {}'.format(rollspeed, pitchspeed, yawspeed))
-        
-        # print('gyro.x: {}, gyro.y: {}, gyro.z: {}'.format(self.imu.gyro.x, self.imu.gyro.y, self.imu.gyro.z))
-        
-        ryp = MAVLink_attitude_message(t_stamp, roll, pitch, yaw, rollspeed, pitchspeed, yawspeed).pack()
-        self.sock.sendto(ryp, (udp_ip, udp_port))
+        self.filter.update(self.imu.accel.xyz, self.imu.gyro.xyz, self.imu.mag.xyz)
+        roll, pitch, heading = map(lambda x: x / 180 * 3.1415, [self.filter.roll, self.filter.pitch, self.filter.heading])
+        ryp = MAVLink_attitude_message(0, roll, pitch, heading, 0, 0, 0).pack()
+        try:
+            self.sock.sendto(ryp, (udp_ip, udp_port))
+        except:
+            pass
+
 
